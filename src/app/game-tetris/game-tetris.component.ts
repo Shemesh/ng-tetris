@@ -191,20 +191,8 @@ export class GameTetrisComponent implements OnInit {
     // Horizontal
     this.ctx.fillRect(x, y + .9, 1, .1);
 
-    //Darker Color - Inner 
-    // Vertical
-    this.ctx.fillRect(x + .65, y + .3, .05, .3);
-    // Horizontal
-    this.ctx.fillRect(x + .3, y + .6, .4, .05);
-
     // Lighter Color - Outer
     this.ctx.fillStyle = COLORSLIGHTER[color];
-
-    // Lighter Color - Inner 
-    // Vertical
-    this.ctx.fillRect(x + .3, y + .3, .05, .3);
-    // Horizontal
-    this.ctx.fillRect(x + .3, y + .3, .4, .05);
 
     // Lighter Color - Outer
     // Vertical

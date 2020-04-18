@@ -37,20 +37,8 @@ export class Piece implements IPiece {
         // Horizontal
         ctx.fillRect(x, y + .9, 1, .1);
 
-        //Darker Color - Inner
-        // Vertical
-        ctx.fillRect(x + .65, y + .3, .05, .3);
-        // Horizontal
-        ctx.fillRect(x + .3, y + .6, .4, .05);
-
         // Lighter Color - Outer
         ctx.fillStyle = this.colorLighter;
-
-        // Lighter Color - Inner
-        // Vertical
-        ctx.fillRect(x + .3, y + .3, .05, .3);
-        // Horizontal
-        ctx.fillRect(x + .3, y + .3, .4, .05);
 
         // Lighter Color - Outer
         // Vertical
@@ -59,11 +47,6 @@ export class Piece implements IPiece {
         // Horizontal
         ctx.fillRect(x, y, 1 , .05);
         ctx.fillRect(x, y, .95, .1);
-    }
-
-    private addNextShadow(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-        ctx.fillStyle = 'black';
-        ctx.fillRect(x, y, 1.025, 1.025);
     }
 
     draw() {
@@ -85,7 +68,8 @@ export class Piece implements IPiece {
         this.shape.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value > 0) {
-                    this.addNextShadow(ctxNext, x, y);
+                    ctxNext.fillStyle = 'black';
+                    ctxNext.fillRect(x, y, 1.025, 1.025);
                 }
             });
         });
