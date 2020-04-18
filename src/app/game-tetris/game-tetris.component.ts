@@ -1,30 +1,14 @@
-import {
-  Component,
-  ViewChild,
-  ElementRef,
-  OnInit,
-  HostListener
-} from '@angular/core';
-import {
-  COLS,
-  BLOCK_SIZE,
-  ROWS,
-  COLORS,
-  COLORSLIGHTER,
-  LINES_PER_LEVEL,
-  LEVEL,
-  POINTS,
-  KEY,
-  COLORSDARKER
-} from './constants';
-import { Piece, IPiece } from './piece.component';
-import { GameService } from './game.service';
+import {Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
+import {BLOCK_SIZE, COLORS, COLORSDARKER, COLORSLIGHTER, COLS, KEY, LEVEL, LINES_PER_LEVEL, POINTS, ROWS} from './constants';
+import {IPiece, Piece} from './piece';
 
 @Component({
-  selector: 'game-board',
-  templateUrl: 'board.component.html'
+  selector: 'game-tetris',
+  templateUrl: './game-tetris.component.html',
+  styleUrls: ['./game-tetris.component.scss']
 })
-export class BoardComponent implements OnInit {
+
+export class GameTetrisComponent implements OnInit {
   @ViewChild('board', { static: true })
   canvas: ElementRef<HTMLCanvasElement>;
   @ViewChild('next', { static: true })
@@ -47,7 +31,7 @@ export class BoardComponent implements OnInit {
     [KEY.RIGHT]: (p: IPiece): IPiece => ({ ...p, x: p.x + 1 }),
     [KEY.DOWN]: (p: IPiece): IPiece => ({ ...p, y: p.y + 1 }),
     [KEY.SPACE]: (p: IPiece): IPiece => ({ ...p, y: p.y + 1 }),
-    [KEY.UP]: (p: IPiece): IPiece => this.service.rotate(p)
+    [KEY.UP]: (p: IPiece): IPiece => this.rotate(p)
   };
 
   @HostListener('window:keydown', ['$event'])
@@ -60,12 +44,12 @@ export class BoardComponent implements OnInit {
       let p = this.moves[event.keyCode](this.piece);
       if (event.keyCode === KEY.SPACE) {
         // Hard drop
-        while (this.service.valid(p, this.board)) {
+        while (this.valid(p, this.board)) {
           this.points += POINTS.HARD_DROP;
           this.piece.move(p);
           p = this.moves[KEY.DOWN](this.piece);
         }
-      } else if (this.service.valid(p, this.board)) {
+      } else if (this.valid(p, this.board)) {
         this.piece.move(p);
         if (event.keyCode === KEY.DOWN) {
           this.points += POINTS.SOFT_DROP;
@@ -74,7 +58,7 @@ export class BoardComponent implements OnInit {
     }
   }
 
-  constructor(private service: GameService) {}
+  constructor() {}
 
   ngOnInit() {
     this.initBoard();
@@ -153,7 +137,7 @@ export class BoardComponent implements OnInit {
 
   drop(): boolean {
     let p = this.moves[KEY.DOWN](this.piece);
-    if (this.service.valid(p, this.board)) {
+    if (this.valid(p, this.board)) {
       this.piece.move(p);
     } else {
       this.freeze();
@@ -179,7 +163,7 @@ export class BoardComponent implements OnInit {
       }
     });
     if (lines > 0) {
-      this.points += this.service.getLinesClearedPoints(lines, this.level);
+      this.points += this.getLinesClearedPoints(lines, this.level);
       this.lines += lines;
       if (this.lines >= LINES_PER_LEVEL) {
         this.level++;
@@ -230,7 +214,7 @@ export class BoardComponent implements OnInit {
     this.ctx.fillRect(x, y, 1 , .05);
     this.ctx.fillRect(x, y, .95, .1);
   }
-  
+
   private addOutlines() {
     for(let index = 1; index < COLS; index++) {
       this.ctx.fillStyle = 'black';
@@ -284,5 +268,63 @@ export class BoardComponent implements OnInit {
 
   getEmptyBoard(): number[][] {
     return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  }
+  
+  // ---------------
+  valid(p: IPiece, board: number[][]): boolean {
+    return p.shape.every((row, dy) => {
+      return row.every((value, dx) => {
+        let x = p.x + dx;
+        let y = p.y + dy;
+        return (
+            this.isEmpty(value) ||
+            (this.insideWalls(x) &&
+                this.aboveFloor(y) &&
+                this.notOccupied(board, x, y))
+        );
+      });
+    });
+  }
+
+  isEmpty(value: number): boolean {
+    return value === 0;
+  }
+
+  insideWalls(x: number): boolean {
+    return x >= 0 && x < COLS;
+  }
+
+  aboveFloor(y: number): boolean {
+    return y <= ROWS;
+  }
+
+  notOccupied(board: number[][], x: number, y: number): boolean {
+    return board[y] && board[y][x] === 0;
+  }
+
+  rotate(piece: IPiece): IPiece {
+    let p: IPiece = JSON.parse(JSON.stringify(piece));
+    for (let y = 0; y < p.shape.length; ++y) {
+      for (let x = 0; x < y; ++x) {
+        [p.shape[x][y], p.shape[y][x]] = [p.shape[y][x], p.shape[x][y]];
+      }
+    }
+    p.shape.forEach(row => row.reverse());
+    return p;
+  }
+
+  getLinesClearedPoints(lines: number, level: number): number {
+    const lineClearPoints =
+        lines === 1
+            ? POINTS.SINGLE
+            : lines === 2
+            ? POINTS.DOUBLE
+            : lines === 3
+                ? POINTS.TRIPLE
+                : lines === 4
+                    ? POINTS.TETRIS
+                    : 0;
+
+    return (level + 1) * lineClearPoints;
   }
 }
