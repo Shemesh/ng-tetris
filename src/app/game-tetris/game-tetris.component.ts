@@ -9,24 +9,22 @@ import {IPiece, Piece} from './piece';
 })
 
 export class GameTetrisComponent implements OnInit {
-  @ViewChild('board', { static: true })
-  canvas: ElementRef<HTMLCanvasElement>;
-  @ViewChild('next', { static: true })
-  canvasNext: ElementRef<HTMLCanvasElement>;
-  ctx: CanvasRenderingContext2D;
-  ctxNext: CanvasRenderingContext2D;
-  board: number[][];
-  piece: Piece;
-  next: Piece;
-  requestId: number;
-  paused: boolean;
-  gameStarted: boolean;
-  time: { start: number; elapsed: number; level: number };
-  points: number;
-  highScore: number;
-  lines: number;
-  level: number;
-  moves = {
+  @ViewChild('board', { static: true }) private canvas: ElementRef<HTMLCanvasElement>;
+  @ViewChild('next', { static: true }) private canvasNext: ElementRef<HTMLCanvasElement>;
+  private ctx: CanvasRenderingContext2D;
+  private ctxNext: CanvasRenderingContext2D;
+  private board: number[][];
+  private piece: Piece;
+  private next: Piece;
+  private requestId: number;
+  private paused: boolean;
+  private gameStarted: boolean;
+  private time: { start: number; elapsed: number; level: number };
+  private points: number;
+  private highScore: number;
+  private lines: number;
+  private level: number;
+  private moves = {
     [KEY.LEFT]: (p: IPiece): IPiece => ({ ...p, x: p.x - 1 }),
     [KEY.RIGHT]: (p: IPiece): IPiece => ({ ...p, x: p.x + 1 }),
     [KEY.DOWN]: (p: IPiece): IPiece => ({ ...p, y: p.y + 1 }),
@@ -36,6 +34,9 @@ export class GameTetrisComponent implements OnInit {
 
   @HostListener('window:keydown', ['$event'])
   keyEvent(event: KeyboardEvent) {
+    if (!this.gameStarted) {
+      return;
+    }
     if (event.keyCode === KEY.ESC) {
       this.gameOver();
     } else if (this.moves[event.keyCode]) {
@@ -65,6 +66,7 @@ export class GameTetrisComponent implements OnInit {
     this.initNext();
     this.resetGame();
     this.highScore = 0;
+    this.play();
   }
 
   initBoard() {
@@ -109,7 +111,7 @@ export class GameTetrisComponent implements OnInit {
   resetGame() {
     this.points = 0;
     this.lines = 0;
-    this.level = 0;
+    this.level = 5;
     this.board = this.getEmptyBoard();
     this.time = { start: 0, elapsed: 0, level: LEVEL[this.level] };
     this.paused = false;
@@ -257,7 +259,7 @@ export class GameTetrisComponent implements OnInit {
   getEmptyBoard(): number[][] {
     return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
   }
-  
+
   // ---------------
   valid(p: IPiece, board: number[][]): boolean {
     return p.shape.every((row, dy) => {
@@ -315,4 +317,5 @@ export class GameTetrisComponent implements OnInit {
 
     return (level + 1) * lineClearPoints;
   }
+
 }

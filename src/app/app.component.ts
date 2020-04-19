@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
-  template: `<game-tetris></game-tetris>`,
+  template: `<app-home-thing></app-home-thing>`,
   styles: []
 })
 export class AppComponent {
